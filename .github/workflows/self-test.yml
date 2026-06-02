@@ -1,0 +1,74 @@
+name: self-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Pin gitsvg to the version that produced the committed examples/linear.svg,
+  # so an upstream gitsvg release that changes output can't flap this CI.
+  GITSVG_PIN: "0.2.6"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Render a single file
+        id: render
+        uses: ./
+        with:
+          input: examples/linear.gitsvg.jsonl
+          output: /tmp/linear.svg
+          gitsvg-version: ${{ env.GITSVG_PIN }}
+      - name: Assert the SVG was produced and the output is reported
+        shell: bash
+        env:
+          SVG_PATH: ${{ steps.render.outputs.svg-path }}
+        run: |
+          test -s /tmp/linear.svg
+          grep -q "<svg" /tmp/linear.svg
+          test "$SVG_PATH" = "/tmp/linear.svg"
+
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Valid fixture should pass
+        uses: ./
+        with:
+          command: validate
+          input: examples/linear.gitsvg.jsonl
+          gitsvg-version: ${{ env.GITSVG_PIN }}
+      - name: Invalid fixture should fail
+        id: bad
+        continue-on-error: true
+        uses: ./
+        with:
+          command: validate
+          input: examples/_invalid.gitsvg.jsonl
+          gitsvg-version: ${{ env.GITSVG_PIN }}
+      - name: Assert the invalid fixture was rejected
+        shell: bash
+        env:
+          BAD_OUTCOME: ${{ steps.bad.outcome }}
+        run: |
+          if [ "$BAD_OUTCOME" != "failure" ]; then
+            echo "::error::validate accepted an invalid fixture"
+            exit 1
+          fi
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Committed SVG should be in sync with its source
+        uses: ./
+        with:
+          command: check
+          input: examples/linear.gitsvg.jsonl
+          gitsvg-version: ${{ env.GITSVG_PIN }}

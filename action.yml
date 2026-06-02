@@ -1,0 +1,115 @@
+name: "gitsvg"
+description: "Render, validate, or drift-check .gitsvg.jsonl diagrams as SVG in CI"
+author: "bertpl"
+branding:
+  icon: git-branch
+  color: purple
+
+inputs:
+  command:
+    description: "What to do: render | validate | check"
+    required: false
+    default: "render"
+  input:
+    description: "Path to a .gitsvg.jsonl file or a directory of them"
+    required: true
+  output:
+    description: >
+      Where to write SVG output (render/check). A file path for a single-file
+      input, or a directory for a directory input. If empty, defaults to the
+      input's sibling .svg (file) or in place (directory).
+    required: false
+    default: ""
+  small:
+    description: "Minification level 0-3 (render/check); 0 = pristine"
+    required: false
+    default: "0"
+  gitsvg-version:
+    description: "gitsvg version to install — a PyPI version (e.g. 0.2.6), or 'latest'"
+    required: false
+    default: "latest"
+  python-version:
+    description: "Python for the runner (gitsvg requires >=3.11)"
+    required: false
+    default: "3.13"
+
+outputs:
+  svg-path:
+    description: "Path of the generated SVG (single-file render; empty for a directory input)"
+    value: ${{ steps.run.outputs.svg-path }}
+  svg-count:
+    description: "Number of diagrams rendered"
+    value: ${{ steps.run.outputs.svg-count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install gitsvg
+      shell: bash
+      env:
+        GITSVG_VERSION: ${{ inputs.gitsvg-version }}
+      run: |
+        if [ "$GITSVG_VERSION" = "latest" ]; then
+          pip install --quiet gitsvg
+        else
+          pip install --quiet "gitsvg==$GITSVG_VERSION"
+        fi
+
+    - name: Run gitsvg
+      id: run
+      shell: bash
+      env:
+        COMMAND: ${{ inputs.command }}
+        INPUT: ${{ inputs.input }}
+        OUTPUT: ${{ inputs.output }}
+        SMALL: ${{ inputs.small }}
+      run: |
+        set -euo pipefail
+
+        # Resolve the default output path when none is given:
+        # a directory renders in place; a file renders to its sibling .svg.
+        resolve_output() {
+          if [ -n "$OUTPUT" ]; then
+            echo "$OUTPUT"
+          elif [ -d "$INPUT" ]; then
+            echo "$INPUT"
+          else
+            echo "${INPUT%.gitsvg.jsonl}.svg"
+          fi
+        }
+
+        case "$COMMAND" in
+          render)
+            out="$(resolve_output)"
+            gitsvg render "$INPUT" -o "$out" --small "$SMALL"
+            ;;
+          validate)
+            gitsvg validate "$INPUT"
+            ;;
+          check)
+            out="$(resolve_output)"
+            gitsvg render "$INPUT" -o "$out" --small "$SMALL"
+            if ! git diff --quiet -- "$out"; then
+              echo "::error::gitsvg drift — committed SVG is stale vs its source."
+              git --no-pager diff -- "$out"
+              exit 1
+            fi
+            ;;
+          *)
+            echo "::error::unknown command '$COMMAND' (expected render|validate|check)"
+            exit 1
+            ;;
+        esac
+
+        # svg-path only makes sense for a single-file render/check.
+        if [ "$COMMAND" != "validate" ] && [ ! -d "$INPUT" ]; then
+          {
+            echo "svg-path=$(resolve_output)"
+            echo "svg-count=1"
+          } >> "$GITHUB_OUTPUT"
+        fi

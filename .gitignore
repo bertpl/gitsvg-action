@@ -1,0 +1,28 @@
+# Private dev docs
+design/
+.local/
+local/
+
+# Local Python env (only to render example fixtures with a pinned gitsvg)
+.venv/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# AI assistants
+.claude/
+CLAUDE.md
+AGENTS.md
+.cursor/
+.cursorrules
+.aider*
+.copilot/
+.github/copilot-instructions.md
+.temp/
