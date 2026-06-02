@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-02
+
+### Changed
+
+- Rename the action's Marketplace listing to `gitsvg-action`; usage (`uses: bertpl/gitsvg-action@v1`) is unchanged.
+
 ## [1.0.0] - 2026-06-02
 
 ### Added

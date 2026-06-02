@@ -1,4 +1,4 @@
-name: "gitsvg"
+name: "gitsvg-action"
 description: "Render, validate, or drift-check .gitsvg.jsonl diagrams as SVG in CI"
 author: "bertpl"
 branding:
