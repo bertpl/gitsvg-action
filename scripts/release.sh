@@ -15,8 +15,8 @@
 # Pushing the tag triggers .github/workflows/release.yml, which re-points the
 # moving "v1" major tag at the new release.
 #
-# Not automated (UI-only): ticking "Publish this Action to the GitHub
-# Marketplace" on the release, which refreshes the Marketplace listing.
+# The Marketplace listing's README auto-refreshes on a new release; there is
+# no per-release manual step.
 
 set -euo pipefail
 
@@ -94,7 +94,4 @@ info "creating GitHub Release $tag"
 gh release create "$tag" --title "$tag" --notes "$notes"
 
 info "done — release.yml will re-point v1 at $tag"
-echo
-echo "Manual (UI-only): tick \"Publish this Action to the GitHub Marketplace\""
-echo "on the release to refresh the listing:"
-echo "  https://github.com/bertpl/gitsvg-action/releases/tag/$tag"
+echo "release: https://github.com/bertpl/gitsvg-action/releases/tag/$tag"
