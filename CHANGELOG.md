@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-03
+
 ### Changed
 
 - Showcase gitsvg's built-in themes in the README with a multi-theme preview image.
