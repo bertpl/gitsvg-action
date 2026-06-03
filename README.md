@@ -6,6 +6,10 @@ Render, validate, or drift-check [`gitsvg`](https://github.com/bertpl/gitsvg) di
 
 ![Example diagram](https://raw.githubusercontent.com/bertpl/gitsvg-action/main/examples/linear.svg)
 
+That's one diagram in the default style. `gitsvg` also ships a set of built-in themes — here's the same git history rendered across several of them, alongside its desktop-GUI table layout, so you can see at a glance the range of looks gitsvg can produce:
+
+![gitsvg's built-in themes](https://raw.githubusercontent.com/bertpl/gitsvg-action/main/assets/named-themes.svg)
+
 ## Usage
 
 Render every `.gitsvg.jsonl` under a directory, in place:
